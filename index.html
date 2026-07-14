@@ -29,11 +29,9 @@
         .screen { display: none; padding: 25px; min-height: 100vh; flex-direction: column; }
         .active-screen { display: flex !important; }
 
-        /* Typography & Inputs */
-        h2 { margin-bottom: 10px; font-size: 24px; color: #2c3e50; }
-        p { color: var(--text-muted); margin-bottom: 25px; font-size: 14px; }
-        input { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 12px; border: 1px solid #ddd; background: #fff; text-align: center; font-size: 20px; letter-spacing: 5px; outline: none; }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 8px rgba(52, 152, 219, 0.2); }
+        /* Typography & General */
+        h2 { margin-bottom: 10px; font-size: 24px; color: #2c3e50; text-align: center;}
+        p { color: var(--text-muted); margin-bottom: 25px; font-size: 14px; text-align: center;}
         
         /* Buttons */
         .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.2s ease; margin-bottom: 15px; }
@@ -42,9 +40,17 @@
         .btn-google { background: #fff; color: #333; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .btn-google img { width: 22px; }
 
+        /* Numpad PIN Design */
+        .pin-display { font-size: 35px; letter-spacing: 12px; margin: 15px 0 30px; color: var(--primary); text-align: center; font-weight: bold; height: 40px; }
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .num-btn { padding: 18px; border-radius: 15px; border: none; background: #e8ecef; font-size: 22px; font-weight: bold; color: var(--text-main); cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .num-btn:active { background: #d1d8dd; transform: scale(0.95); }
+        .num-btn.clear { background: #ffebee; color: var(--danger); }
+        .num-btn.ok { background: #e8f5e9; color: var(--jamath); }
+
         /* Header */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #eaeaea; }
-        .header h2 { margin: 0; font-size: 22px; }
+        .header h2 { margin: 0; font-size: 22px; text-align: left;}
         .header-icons i { font-size: 22px; color: var(--text-muted); margin-left: 15px; cursor: pointer; transition: 0.2s; }
         .header-icons i:hover { color: var(--primary); }
 
@@ -72,11 +78,12 @@
         /* History Screen */
         .history-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
         .history-header i { font-size: 22px; cursor: pointer; color: var(--text-main); }
-        .history-header h2 { margin: 0; }
+        .history-header h2 { margin: 0; text-align: left; }
         .history-card { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border-left: 4px solid var(--primary); }
         .h-days { font-size: 20px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
         .h-dates { font-size: 12px; color: #7f8c8d; }
         .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        #error-msg { color: var(--danger); margin-top: 15px; font-weight: bold; text-align: center; }
 
     </style>
 </head>
@@ -84,24 +91,44 @@
 
     <div class="app-container">
         
-        <!-- 1. PIN Screen (Super Clean) -->
-        <div id="pin-screen" class="screen active-screen" style="justify-content: center; text-align: center;">
-            <i class="fas fa-lock" style="font-size: 40px; color: var(--primary); margin-bottom: 20px;"></i>
-            <h2>ড্যাশবোর্ড আনলক করুন</h2>
-            <p>আপনার ব্যক্তিগত পিন কোড দিন</p>
-            <input type="password" id="pin-input" placeholder="••••" maxlength="4">
-            <button class="btn btn-primary" onclick="checkPin()">প্রবেশ করুন</button>
+        <!-- 1. PIN Screen (With Custom Numpad) -->
+        <div id="pin-screen" class="screen active-screen" style="justify-content: center;">
+            <div style="text-align: center;">
+                <i class="fas fa-lock" style="font-size: 40px; color: var(--primary); margin-bottom: 20px;"></i>
+                <h2>ড্যাশবোর্ড আনলক করুন</h2>
+                <p>কিবোর্ডের বদলে নিচের বাটন চেপে পিন দিন</p>
+            </div>
+            
+            <div class="pin-display" id="pin-display">••••</div>
+            
+            <div class="numpad">
+                <button class="num-btn" onclick="addPin('1')">1</button>
+                <button class="num-btn" onclick="addPin('2')">2</button>
+                <button class="num-btn" onclick="addPin('3')">3</button>
+                <button class="num-btn" onclick="addPin('4')">4</button>
+                <button class="num-btn" onclick="addPin('5')">5</button>
+                <button class="num-btn" onclick="addPin('6')">6</button>
+                <button class="num-btn" onclick="addPin('7')">7</button>
+                <button class="num-btn" onclick="addPin('8')">8</button>
+                <button class="num-btn" onclick="addPin('9')">9</button>
+                <button class="num-btn clear" onclick="clearPin()">C</button>
+                <button class="num-btn" onclick="addPin('0')">0</button>
+                <button class="num-btn ok" onclick="checkPin()">OK</button>
+            </div>
         </div>
 
         <!-- 2. Auth Screen -->
-        <div id="auth-screen" class="screen" style="justify-content: center; text-align: center;">
-            <i class="fas fa-cloud-arrow-up" style="font-size: 40px; color: var(--jamath); margin-bottom: 20px;"></i>
-            <h2>ডাটা ব্যাকআপ</h2>
-            <p>আপনার ডাটা সুরক্ষিত রাখতে গুগল অ্যাকাউন্ট যুক্ত করুন</p>
-            <button class="btn-google btn" onclick="signInWithGoogle()">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
-                Google দিয়ে লগইন করুন
-            </button>
+        <div id="auth-screen" class="screen" style="justify-content: center;">
+            <div style="text-align: center;">
+                <i class="fas fa-cloud-arrow-up" style="font-size: 40px; color: var(--jamath); margin-bottom: 20px;"></i>
+                <h2>ডাটা ব্যাকআপ</h2>
+                <p>আপনার ডাটা সুরক্ষিত রাখতে গুগল অ্যাকাউন্ট যুক্ত করুন</p>
+                <button class="btn-google btn" onclick="signInWithGoogle()">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
+                    Google দিয়ে লগইন করুন
+                </button>
+                <p id="error-msg"></p>
+            </div>
         </div>
 
         <!-- 3. Main Dashboard -->
@@ -155,7 +182,7 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ✅ তোমার দেওয়া অরিজিনাল ফায়ারবেস কনফিগারেশন (আমি বসিয়ে দিয়েছি)
+        // ✅ তোমার দেওয়া অরিজিনাল ফায়ারবেস কনফিগারেশন 
         const firebaseConfig = {
             apiKey: "AIzaSyAUHecK8H7KDE-k2eUPLLJojdD_iPQtluM",
             authDomain: "myenglishnote-88079.firebaseapp.com",
@@ -176,25 +203,44 @@
         let timerStartTime = null;
         const prayers = ["ফজর", "জোহর", "আসর", "মাগরিব", "ইশা"];
 
-        // --- Navigation ---
+        // --- Numpad PIN Logic ---
+        let currentPin = "";
+        window.clearPin = () => { currentPin = ""; document.getElementById('pin-display').innerText = "••••"; };
+        
+        window.addPin = (num) => { 
+            if(currentPin.length < 4) {
+                currentPin += num; 
+                let display = "";
+                for(let i=0; i<currentPin.length; i++) display += "•";
+                document.getElementById('pin-display').innerText = display;
+            }
+        };
+
         window.checkPin = function() {
-            if (document.getElementById('pin-input').value === "7860") {
+            if (currentPin === "7860") {
                 document.getElementById('pin-screen').classList.remove('active-screen');
                 document.getElementById('auth-screen').classList.add('active-screen');
             } else {
                 alert("ভুল পিন দিয়েছেন!");
+                window.clearPin();
             }
         }
 
-        window.signInWithGoogle = function() {
-            signInWithPopup(auth, provider).catch(err => alert("লগইন বাতিল হয়েছে: " + err.message));
+        // --- Auth Logic ---
+        window.signInWithGoogle = async function() {
+            try {
+                document.getElementById('error-msg').innerText = "লগইন হচ্ছে, অপেক্ষা করুন...";
+                await signInWithPopup(auth, provider);
+            } catch(error) {
+                document.getElementById('error-msg').innerText = "সমস্যা হয়েছে: " + error.message;
+            }
         }
 
         window.logout = function() {
             signOut(auth).then(() => window.location.reload());
         }
 
-        // --- Auth State ---
+        // --- State Observer ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -231,12 +277,10 @@
             const dateStr = new Date().toISOString().split('T')[0];
             const ref = doc(db, `users/${currentUser.uid}/prayers/${dateStr}`);
             
-            // Update UI instantly for smooth feel
             document.getElementById(`jamath-${index}`).classList.remove('active');
             document.getElementById(`home-${index}`).classList.remove('active');
             document.getElementById(`${type}-${index}`).classList.add('active');
 
-            // Save to database
             await setDoc(ref, { [index]: type }, { merge: true });
         }
 
@@ -277,14 +321,12 @@
                 const diffMs = endTime - timerStartTime;
                 const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
                 
-                // Save to History
                 await addDoc(collection(db, `users/${currentUser.uid}/history`), {
                     startTime: timerStartTime,
                     endTime: endTime,
                     days: days
                 });
 
-                // Reset
                 timerStartTime = null;
                 await setDoc(doc(db, `users/${currentUser.uid}/timer/current`), { startTime: null });
                 document.getElementById('timer-display').innerText = "0 Days";
@@ -360,5 +402,4 @@
         }
     </script>
 </body>
-    </html>
-    
+</html>
