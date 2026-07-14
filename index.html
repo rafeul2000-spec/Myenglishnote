@@ -578,13 +578,11 @@
             window.updateDashboard();
         }
 
-        window.deleteHistoryItem = async function(index) {
-            if(confirm("আপনি কি নিশ্চিত যে এই রেকর্ডটি ডিলিট করতে চান?")) {
-                window.historyData.splice(index, 1);
-                if(window.syncWithCloud) await window.syncWithCloud();
-                window.updateDashboard();
-            }
-        }
+                        window.deleteHistoryItem = function(index) {
+            alert("🔒 নিরাপত্তার স্বার্থে ডিলিট অপশনটি লক করা হয়েছে!");
+                        }
+        
+
 
         window.updateDashboard = function() {
             const ul = document.getElementById("history-ul");
