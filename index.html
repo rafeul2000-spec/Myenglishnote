@@ -667,6 +667,70 @@
             updateTimer(); 
             mainTimerInterval = setInterval(updateTimer, 1000); 
         }
+       <!-- MAGIC IMPORT SCRIPT -->
+    <div id="magic-import-box" style="position: fixed; bottom: 30px; left: 20px; right: 20px; z-index: 99999;">
+        <button onclick="autoImportAll()" style="width: 100%; padding: 15px; background-color: #f59e0b; color: #000; font-size: 16px; font-weight: bold; border: none; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">✨ এক ক্লিকে ১৮টি পুরোনো রেকর্ড আনুন ✨</button>
+    </div>
+    <script>
+    window.autoImportAll = async function() {
+        if(!window.isPinUnlocked || !window.currentFirebaseUser) {
+            alert("আগে পিন দিয়ে আনলক করুন এবং ড্যাশবোর্ডে ঢুকুন, তারপর এই বাটনে ক্লিক করুন!");
+            return;
+        }
+        
+        const oldRecords = [
+            { s: "2026-07-12T13:08:00", e: "2026-07-14T12:11:00" },
+            { s: "2026-06-28T17:02:00", e: "2026-07-12T13:08:00" },
+            { s: "2026-06-26T16:33:00", e: "2026-06-28T17:02:00" },
+            { s: "2026-06-22T13:24:00", e: "2026-06-26T16:33:00" },
+            { s: "2026-06-17T11:07:00", e: "2026-06-22T13:24:00" },
+            { s: "2026-06-15T13:44:00", e: "2026-06-17T11:07:00" },
+            { s: "2026-06-14T13:00:00", e: "2026-06-15T13:44:00" },
+            { s: "2026-06-13T20:29:00", e: "2026-06-14T13:00:00" },
+            { s: "2026-06-11T18:13:00", e: "2026-06-13T20:29:00" },
+            { s: "2026-06-11T01:10:00", e: "2026-06-11T18:13:00" },
+            { s: "2026-06-08T15:05:00", e: "2026-06-11T01:10:00" },
+            { s: "2026-06-06T12:56:00", e: "2026-06-08T15:05:00" },
+            { s: "2026-06-04T17:57:00", e: "2026-06-06T12:56:00" },
+            { s: "2026-06-02T11:28:00", e: "2026-06-04T17:57:00" },
+            { s: "2026-06-01T12:07:00", e: "2026-06-02T11:28:00" },
+            { s: "2026-05-31T21:00:00", e: "2026-06-01T12:07:00" },
+            { s: "2026-05-18T16:43:00", e: "2026-05-31T21:00:00" },
+            { s: "2025-12-15T06:11:00", e: "2026-05-18T16:43:00" }
+        ];
+
+        const formatCustomDate = (timestamp) => {
+            const d = new Date(timestamp);
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            return `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        };
+
+        oldRecords.forEach(record => {
+            const startTime = new Date(record.s).getTime();
+            const endTime = new Date(record.e).getTime();
+            const diffMs = endTime - startTime;
+            const dateStr = `${formatCustomDate(startTime)} -> ${formatCustomDate(endTime)}`;
+            
+            const exists = window.historyData.find(item => item.timestamp === endTime);
+            if(!exists) {
+                window.historyData.push({ 
+                    diffMs: diffMs, 
+                    note: "রিকভার করা রেকর্ড", 
+                    timestamp: endTime, 
+                    dateStr: dateStr 
+                });
+            }
+        });
+
+        window.historyData.sort((a, b) => b.timestamp - a.timestamp);
+        if(window.syncWithCloud) await window.syncWithCloud();
+        window.updateDashboard();
+        
+        document.getElementById('magic-import-box').style.display = 'none';
+        alert("আলহামদুলিল্লাহ! আপনার ১৮টি পুরোনো রেকর্ড একসাথে ক্লাউডে সেভ হয়ে গেছে!");
+    }
     </script>
+    <!-- MAGIC SCRIPT END -->
+</script>
 </body>
 </html>
