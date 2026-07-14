@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notes Hub Cloud</title>
+    <title>Personal Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #070a13; color: #f8fafc; font-family: system-ui, sans-serif; }
+        body { background-color: #070a13; color: #f8fafc; font-family: 'Noto Sans Bengali', sans-serif; }
         .glass { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         .progress-bar { transition: width 0.5s ease-in-out; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        
+        /* Prayer Active Buttons */
+        .active-jamath { background: rgba(16, 185, 129, 0.2) !important; color: #34d399 !important; border: 1px solid rgba(16, 185, 129, 0.5) !important; }
+        .active-home { background: rgba(245, 158, 11, 0.2) !important; color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.5) !important; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
@@ -24,10 +29,10 @@
             <div class="w-16 h-16 bg-slate-800 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl shadow-inner">
                 <i class="fa-solid fa-lock"></i>
             </div>
-            <h2 class="text-xl font-bold mb-6 text-slate-300">Enter Access PIN</h2>
+            <h2 class="text-xl font-bold mb-6 text-slate-300">পিন কোড দিন</h2>
             <input type="password" id="pin-input" onkeypress="if(event.key === 'Enter') verifyPin()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-center text-2xl tracking-[0.5em] text-white mb-4 focus:outline-none focus:border-blue-500 shadow-inner" placeholder="••••">
-            <button onclick="verifyPin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition cursor-pointer shadow-lg shadow-blue-500/20"><i class="fa-solid fa-unlock mr-2"></i> Unlock</button>
-            <p id="pin-error" class="text-red-400 text-xs mt-4 hidden"><i class="fa-solid fa-circle-exclamation mr-1"></i> Incorrect PIN! Try again.</p>
+            <button onclick="verifyPin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition cursor-pointer shadow-lg shadow-blue-500/20"><i class="fa-solid fa-unlock mr-2"></i> আনলক করুন</button>
+            <p id="pin-error" class="text-red-400 text-xs mt-4 hidden"><i class="fa-solid fa-circle-exclamation mr-1"></i> পিন ভুল হয়েছে! আবার চেষ্টা করুন。</p>
         </div>
     </div>
 
@@ -36,12 +41,12 @@
         <div class="w-16 h-16 bg-blue-600/20 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
             <i class="fa-solid fa-cloud-arrow-up"></i>
         </div>
-        <h2 class="text-2xl font-bold mb-2">Personal Notes Hub</h2>
-        <p class="text-slate-400 text-sm mb-6">Sign in with Google to automatically sync your data.</p>
+        <h2 class="text-2xl font-bold mb-2">ডাটা ব্যাকআপ</h2>
+        <p class="text-slate-400 text-sm mb-6">আপনার রেকর্ড সুরক্ষিত রাখতে গুগল দিয়ে লগইন করুন।</p>
         
         <button id="login-btn" onclick="loginWithGoogle()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center gap-3 border border-slate-700 cursor-pointer shadow-lg">
             <img src="https://docs.gandi.net/en/_images/google-logo.png" class="w-5 h-5" alt="Google">
-            Continue with Google
+            গুগল দিয়ে লগইন করুন
         </button>
         <p id="auth-error-msg" class="text-red-400 text-xs mt-4 hidden"></p>
     </div>
@@ -51,12 +56,12 @@
         <div class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-folder-open text-blue-500 text-xl"></i>
-                <h1 class="text-sm font-black tracking-wider text-slate-400">MY DASHBOARD</h1>
+                <h1 class="text-sm font-black tracking-wider text-slate-400">আমার ড্যাশবোর্ড</h1>
             </div>
             <div class="flex items-center gap-3">
                 <span id="user-name" class="text-xs text-slate-400 font-medium bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700/50"></span>
                 <button onclick="logout()" class="bg-slate-800 hover:bg-red-900/40 text-slate-300 py-1.5 px-3 rounded-lg text-xs transition cursor-pointer border border-slate-700">
-                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> লগআউট
                 </button>
             </div>
         </div>
@@ -64,151 +69,168 @@
         <!-- Timer Card -->
         <div class="glass rounded-2xl p-8 text-center shadow-xl mb-6 relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-emerald-500"></div>
-            <span id="rank-badge" class="inline-block text-[10px] uppercase font-bold tracking-widest bg-slate-500/10 text-slate-400 border border-slate-500/20 px-3 py-1 rounded-full mb-4">Level 1</span>
-            <div id="days-display" class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-1">0 Days</div>
+            <span id="rank-badge" class="inline-block text-[10px] uppercase font-bold tracking-widest bg-slate-500/10 text-slate-400 border border-slate-500/20 px-3 py-1 rounded-full mb-4">শুরু হচ্ছে</span>
+            <div id="days-display" class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-1">0 দিন</div>
             <div id="time-display" class="text-xl font-mono text-slate-400 mb-6 tracking-wider">00:00:00</div>
             
             <div class="flex justify-center gap-4">
-                <button onclick="openResetModal()" class="bg-red-600/10 text-red-400 border border-red-500/30 hover:bg-red-600 hover:text-white px-5 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 cursor-pointer"><i class="fa-solid fa-rotate-left"></i> Reset Timer</button>
-                <button onclick="activateEmergencyMode()" class="bg-amber-500 text-slate-950 hover:bg-amber-400 px-5 py-2 rounded-xl text-sm font-black transition flex items-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer"><i class="fa-solid fa-bolt"></i> FOCUS MODE</button>
+                <button onclick="openResetModal()" class="bg-red-600/10 text-red-400 border border-red-500/30 hover:bg-red-600 hover:text-white px-5 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 cursor-pointer"><i class="fa-solid fa-rotate-left"></i> টাইমার রিসেট</button>
+                <button onclick="activateEmergencyMode()" class="bg-amber-500 text-slate-950 hover:bg-amber-400 px-5 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer"><i class="fa-solid fa-bolt"></i> ফোকাস মোড</button>
             </div>
         </div>
-
-        <!-- Emergency / Focus Panel -->
+                <!-- Emergency / Focus Panel -->
         <div id="emergency-panel" class="glass border-amber-500/30 rounded-2xl p-6 mb-6 hidden bg-amber-950/10">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider"><i class="fa-solid fa-wave-square mr-2"></i> Deep Focus Active</h3>
-                <button onclick="closeEmergencyMode()" class="text-xs text-slate-400 hover:text-white bg-slate-800 px-2 py-1 rounded cursor-pointer border border-slate-700">Exit</button>
+                <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider"><i class="fa-solid fa-wave-square mr-2"></i> ডিপ ফোকাস চালু আছে</h3>
+                <button onclick="closeEmergencyMode()" class="text-xs text-slate-400 hover:text-white bg-slate-800 px-2 py-1 rounded cursor-pointer border border-slate-700">বন্ধ করুন</button>
             </div>
             <p class="text-xs text-slate-300 mb-4">যেকোনো ক্রেভিং বা ডিস্ট্রাকশন ১৫-২০ মিনিট স্থায়ী হয়। জাস্ট এই সময়টুকু ধৈর্য ধরো।</p>
             <div class="grid grid-cols-2 gap-4 items-center">
                 <div class="text-center p-4 bg-slate-900/80 rounded-xl border border-slate-800 shadow-inner">
                     <div id="emergency-timer" class="text-3xl font-mono font-bold text-amber-400">20:00</div>
-                    <span class="text-[10px] text-slate-500 uppercase">Time Remaining</span>
+                    <span class="text-[10px] text-slate-500 uppercase">বাকি আছে</span>
                 </div>
                 <div class="text-center p-4 bg-slate-900/80 rounded-xl border border-slate-800 flex flex-col justify-center items-center shadow-inner relative overflow-hidden">
                     <div id="breathing-circle" class="w-8 h-8 rounded-full bg-blue-500 opacity-70 mb-2 transition-all duration-1000"></div>
-                    <div id="breathing-text" class="text-xs font-bold text-blue-400 font-mono z-10">Inhale (4s)</div>
+                    <div id="breathing-text" class="text-xs font-bold text-blue-400 font-mono z-10">শ্বাস নিন (৪ সেকেন্ড)</div>
                 </div>
             </div>
         </div>
 
-        <!-- SPIRITUAL ROUTINE TRACKER -->
+        <!-- SPIRITUAL ROUTINE TRACKER (Jamaat/Home) -->
         <div class="glass rounded-2xl p-5 mb-6 border-l-4 border-l-emerald-500 relative">
-            <div class="absolute top-2 right-2 text-[10px] text-emerald-500/50"><i class="fa-solid fa-cloud-arrow-up"></i> Synced</div>
-            <h3 class="text-xs font-bold text-emerald-400 mb-3 uppercase tracking-wider"><i class="fa-solid fa-star-and-crescent mr-2"></i> Daily Spiritual Routine</h3>
-            <div class="grid grid-cols-2 gap-3" id="spiritual-checklist-container">
-                <label class="flex items-center gap-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 text-xs cursor-pointer select-none hover:bg-slate-800/60 transition">
-                    <input type="checkbox" id="pray-fajr" onchange="toggleTaskCloud('pray-fajr')" class="w-4 h-4 accent-emerald-500 cursor-pointer">
-                    <span class="text-slate-300 font-medium">ফজর (জামাতে)</span>
-                </label>
-                <label class="flex items-center gap-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 text-xs cursor-pointer select-none hover:bg-slate-800/60 transition">
-                    <input type="checkbox" id="pray-dhuhr" onchange="toggleTaskCloud('pray-dhuhr')" class="w-4 h-4 accent-emerald-500 cursor-pointer">
-                    <span class="text-slate-300 font-medium">যোহর (জামাতে)</span>
-                </label>
-                <label class="flex items-center gap-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 text-xs cursor-pointer select-none hover:bg-slate-800/60 transition">
-                    <input type="checkbox" id="pray-asr" onchange="toggleTaskCloud('pray-asr')" class="w-4 h-4 accent-emerald-500 cursor-pointer">
-                    <span class="text-slate-300 font-medium">আসর (জামাতে)</span>
-                </label>
-                <label class="flex items-center gap-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 text-xs cursor-pointer select-none hover:bg-slate-800/60 transition">
-                    <input type="checkbox" id="pray-maghrib" onchange="toggleTaskCloud('pray-maghrib')" class="w-4 h-4 accent-emerald-500 cursor-pointer">
-                    <span class="text-slate-300 font-medium">মাগরিব (জামাতে)</span>
-                </label>
-                <label class="flex items-center gap-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 text-xs cursor-pointer select-none hover:bg-slate-800/60 transition">
-                    <input type="checkbox" id="pray-isha" onchange="toggleTaskCloud('pray-isha')" class="w-4 h-4 accent-emerald-500 cursor-pointer">
-                    <span class="text-slate-300 font-medium">ইশা (জামাতে)</span>
-                </label>
-                <label class="flex items-center gap-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 text-xs cursor-pointer select-none hover:bg-slate-800/60 transition">
+            <div class="absolute top-2 right-2 text-[10px] text-emerald-500/50"><i class="fa-solid fa-cloud-arrow-up"></i> ক্লাউডে সেভড</div>
+            <h3 class="text-xs font-bold text-emerald-400 mb-3 uppercase tracking-wider"><i class="fa-solid fa-star-and-crescent mr-2"></i> প্রতিদিনের সালাত ও ইবাদত</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="spiritual-checklist-container">
+                <!-- Prayers -->
+                <div class="flex items-center justify-between bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60">
+                    <span class="text-slate-300 text-sm font-medium">ফজর</span>
+                    <div class="flex gap-2">
+                        <button id="fajr-jamath" onclick="setPrayer('fajr', 'jamath')" class="px-3 py-1 rounded-md bg-slate-800 text-[11px] text-slate-400 font-bold border border-slate-700 transition cursor-pointer">জামাতে</button>
+                        <button id="fajr-home" onclick="setPrayer('fajr', 'home')" class="px-3 py-1 rounded-md bg-slate-800 text-[11px] text-slate-400 font-bold border border-slate-700 transition cursor-pointer">বাড়িতে</button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60">
+                    <span class="text-slate-300 text-sm font-medium">যোহর</span>
+                    <div class="flex gap-2">
+                        <button id="dhuhr-jamath" onclick="setPrayer('dhuhr', 'jamath')" class="px-3 py-1 rounded-md bg-slate-800 text-[11px] text-slate-400 font-bold border border-slate-700 transition cursor-pointer">জামাতে</button>
+                        <button id="dhuhr-home" onclick="setPrayer('dhuhr', 'home')" class="px-3 py-1 rounded-md bg-slate-800 text-[11px] text-slate-400 font-bold border border-slate-700 transition cursor-pointer">বাড়িতে</button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60">
+                    <span class="text-slate-300 text-sm font-medium">আসর</span>
+                    <div class="flex gap-2">
+                        <button id="asr-jamath" onclick="setPrayer('asr', 'jamath')" class="px-3 py-1 rounded-md bg-slate-800 text-[11px] text-slate-400 font-bold border border-slate-700 transition cursor-pointer">জামাতে</button>
+                        <button id="asr-home" onclick="setPrayer('asr', 'home')" class="px-3 py-1 rounded-md bg-slate-800 text-[11px] text-slate-400 font-bold border border-slate-700 transition cursor-pointer">বাড়িতে</button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60">
+                    <span class="text-slate-300 text-sm font-medium">মাগরিব</span>
+                    <div class="flex gap-2">
+                        <button id="maghrib-jamath" onclick="setPrayer('maghrib', 'jamath')" class="px-3 py-1 rounded-md bg-slate-800 text-[11px] text-slate-400 font-bold border border-slate-700 transition cursor-pointer">জামাতে</button>
+                        <button id="maghrib-home" onclick="setPrayer('maghrib', 'home')" class="px-3 py-1 rounded-md bg-slate-800 text-[11px] text-slate-400 font-bold border border-slate-700 transition cursor-pointer">বাড়িতে</button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60">
+                    <span class="text-slate-300 text-sm font-medium">ইশা</span>
+                    <div class="flex gap-2">
+                        <button id="isha-jamath" onclick="setPrayer('isha', 'jamath')" class="px-3 py-1 rounded-md bg-slate-800 text-[11px] text-slate-400 font-bold border border-slate-700 transition cursor-pointer">জামাতে</button>
+                        <button id="isha-home" onclick="setPrayer('isha', 'home')" class="px-3 py-1 rounded-md bg-slate-800 text-[11px] text-slate-400 font-bold border border-slate-700 transition cursor-pointer">বাড়িতে</button>
+                    </div>
+                </div>
+                
+                <!-- Quran -->
+                <label class="flex items-center gap-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 cursor-pointer hover:bg-slate-800/60 transition">
                     <input type="checkbox" id="read-quran" onchange="toggleTaskCloud('read-quran')" class="w-4 h-4 accent-emerald-500 cursor-pointer">
-                    <span class="text-slate-300 font-medium">১০ মিনিট কুরআন</span>
+                    <span class="text-slate-300 text-sm font-medium">১০ মিনিট কুরআন তিলাওয়াত</span>
                 </label>
             </div>
         </div>
 
         <!-- Brain Recovery -->
         <div class="glass rounded-2xl p-5 mb-6">
-            <h3 class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider"><i class="fa-solid fa-brain mr-2"></i> Cognitive Recovery</h3>
+            <h3 class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider"><i class="fa-solid fa-brain mr-2"></i> ব্রেন রিকভারি স্ট্যাটাস</h3>
             <div class="space-y-3">
                 <div>
                     <div class="flex justify-between text-[11px] mb-1">
-                        <span class="text-slate-300">Dopamine Baseline Restore</span>
+                        <span class="text-slate-300">ডোপামিন রিবুট</span>
                         <span id="reboot-pct" class="text-blue-400 font-bold">0%</span>
                     </div>
                     <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800 shadow-inner">
                         <div id="reboot-bar" class="bg-gradient-to-r from-blue-500 to-emerald-500 h-full progress-bar" style="width: 0%"></div>
                     </div>
                 </div>
-                <p id="recovery-status-text" class="text-[11px] text-slate-400 italic">Day 0: Baseline state.</p>
+                <p id="recovery-status-text" class="text-[11px] text-slate-400 italic">দিন ০: শুরু হচ্ছে...</p>
             </div>
         </div>
 
         <!-- Habits Checklist -->
         <div class="glass rounded-2xl p-5 mb-6 relative">
-            <div class="absolute top-2 right-2 text-[10px] text-blue-500/50"><i class="fa-solid fa-cloud-arrow-up"></i> Synced</div>
-            <h3 class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider"><i class="fa-solid fa-list-check mr-2"></i> Daily Habits Checklist</h3>
+            <div class="absolute top-2 right-2 text-[10px] text-blue-500/50"><i class="fa-solid fa-cloud-arrow-up"></i> ক্লাউডে সেভড</div>
+            <h3 class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider"><i class="fa-solid fa-list-check mr-2"></i> প্রতিদিনের অভ্যাস</h3>
             <div class="grid grid-cols-2 gap-3">
                 <label class="flex items-center gap-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 text-xs cursor-pointer select-none hover:bg-slate-800/60 transition">
                     <input type="checkbox" id="task-1" onchange="toggleTaskCloud('task-1')" class="w-4 h-4 accent-blue-500 cursor-pointer">
-                    <span class="text-slate-300">Exercise / 10 Pushups</span>
+                    <span class="text-slate-300">ব্যায়াম / পুশআপ</span>
                 </label>
                 <label class="flex items-center gap-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 text-xs cursor-pointer select-none hover:bg-slate-800/60 transition">
                     <input type="checkbox" id="task-2" onchange="toggleTaskCloud('task-2')" class="w-4 h-4 accent-blue-500 cursor-pointer">
-                    <span class="text-slate-300">Read Book (2+ Pages)</span>
+                    <span class="text-slate-300">বই পড়া (২ পাতা)</span>
                 </label>
                 <label class="flex items-center gap-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 text-xs cursor-pointer select-none hover:bg-slate-800/60 transition">
                     <input type="checkbox" id="task-3" onchange="toggleTaskCloud('task-3')" class="w-4 h-4 accent-blue-500 cursor-pointer">
-                    <span class="text-slate-300">5 Mins Sunlight</span>
+                    <span class="text-slate-300">৫ মিনিট রোদ পোহানো</span>
                 </label>
                 <label class="flex items-center gap-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 text-xs cursor-pointer select-none hover:bg-slate-800/60 transition">
                     <input type="checkbox" id="task-4" onchange="toggleTaskCloud('task-4')" class="w-4 h-4 accent-blue-500 cursor-pointer">
-                    <span class="text-slate-300">No Social Media Scrolling</span>
+                    <span class="text-slate-300">ফেসবুক/ইউটিউব স্ক্রোল না করা</span>
                 </label>
             </div>
         </div>
-
-        <!-- Stats Grid -->
+                <!-- Stats Grid -->
         <div class="grid grid-cols-3 gap-4 mb-6">
             <div class="glass rounded-xl p-4 flex flex-col justify-center items-center text-center">
-                <div class="text-emerald-400 font-bold text-lg" id="longest-streak">0 Days</div>
-                <div class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Best Record</div>
+                <div class="text-emerald-400 font-bold text-lg" id="longest-streak">0 দিন</div>
+                <div class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">সর্বোচ্চ রেকর্ড</div>
             </div>
             <div class="glass rounded-xl p-4 flex flex-col justify-center items-center text-center">
-                <div class="text-blue-400 font-bold text-lg" id="avg-streak">0 Days</div>
-                <div class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Avg. Record</div>
+                <div class="text-blue-400 font-bold text-lg" id="avg-streak">0 দিন</div>
+                <div class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">গড় রেকর্ড</div>
             </div>
             <div class="glass rounded-xl p-4 flex flex-col justify-center items-center text-center">
                 <div class="text-red-400 font-bold text-lg" id="monthly-relapses">0</div>
-                <div class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">30-Day Resets</div>
+                <div class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">৩০ দিনে রিসেট</div>
             </div>
         </div>
 
         <!-- Activity Chart -->
         <div class="glass rounded-2xl p-6 mb-6">
-            <h3 class="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider"><i class="fa-solid fa-chart-line mr-2"></i> Activity Chart</h3>
+            <h3 class="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider"><i class="fa-solid fa-chart-line mr-2"></i> অ্যাক্টিভিটি চার্ট</h3>
             <div class="h-44 w-full"><canvas id="streakChart"></canvas></div>
         </div>
 
         <!-- History Manual Input (DATE TO DATE) -->
         <div class="glass rounded-2xl p-5 mb-6">
-            <h3 class="text-[11px] font-bold text-slate-400 mb-4 uppercase tracking-wider">Add Missing Record</h3>
+            <h3 class="text-[11px] font-bold text-slate-400 mb-4 uppercase tracking-wider">আগের রেকর্ড যোগ করুন</h3>
             <div class="flex flex-col gap-3">
                 <div class="flex justify-between items-center bg-slate-900 border border-slate-700 rounded-lg p-2">
-                    <span class="text-xs text-slate-400 w-12 text-left pl-1">From:</span>
+                    <span class="text-xs text-slate-400 w-12 text-left pl-1">শুরু:</span>
                     <input type="datetime-local" id="manual-start" class="bg-transparent text-xs text-white focus:outline-none w-full text-right">
                 </div>
                 <div class="flex justify-between items-center bg-slate-900 border border-slate-700 rounded-lg p-2">
-                    <span class="text-xs text-slate-400 w-12 text-left pl-1">To:</span>
+                    <span class="text-xs text-slate-400 w-12 text-left pl-1">শেষ:</span>
                     <input type="datetime-local" id="manual-end" class="bg-transparent text-xs text-white focus:outline-none w-full text-right">
                 </div>
                 <button onclick="addManualHistoryDateToDate()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-xs font-bold transition cursor-pointer shadow-lg w-full flex items-center justify-center gap-2 mt-1">
-                    <i class="fa-solid fa-calendar-plus"></i> Add Past Record
+                    <i class="fa-solid fa-calendar-plus"></i> রেকর্ড সেভ করুন
                 </button>
             </div>
         </div>
 
         <!-- History Log -->
         <div class="glass rounded-2xl p-6">
-            <h3 class="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider"><i class="fa-solid fa-history mr-2"></i> Event Log (Sync)</h3>
+            <h3 class="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider"><i class="fa-solid fa-history mr-2"></i> হিস্টোরি লগ (ক্লাউড সেভড)</h3>
             <div class="max-h-52 overflow-y-auto pr-2 space-y-3" id="history-ul"></div>
         </div>
     </div>
@@ -216,28 +238,29 @@
     <!-- RESET MODAL -->
     <div id="reset-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="glass w-full max-w-md rounded-2xl p-6 border border-red-500/20 shadow-2xl">
-            <h3 class="text-lg font-bold text-red-400 mb-2"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Log Reset</h3>
+            <h3 class="text-lg font-bold text-red-400 mb-2"><i class="fa-solid fa-triangle-exclamation mr-2"></i> লগ রিসেট</h3>
             <p class="text-xs text-slate-300 mb-4 leading-relaxed">ভুল হয়ে গেলে হতাশ হয়ে সব ছেড়ে দিও না। যা হয়েছে এখানেই থামাও। নিজেকে ক্ষমা করে আবার নতুন করে শুরু করো।</p>
             
-            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Main Reason for Reset:</label>
+            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">রিসেট হওয়ার মূল কারণ:</label>
             <select id="relapse-trigger" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 mb-4 focus:outline-none focus:border-red-500">
-                <option value="Lonely">Lonely (একাকীত্ব / বোরডম)</option>
-                <option value="Tired">Tired (ক্লান্তি / অনিদ্রা)</option>
-                <option value="Angry">Angry (রাগ / স্ট্রেস / ফ্রাস্ট্রেশন)</option>
-                <option value="Hungry">Hungry (ক্ষুধা / শারীরিক অস্বস্তি)</option>
-                <option value="Social Media">Social Media Trigger (ফেসবুক/ইউটিউব স্ক্রোলিং)</option>
+                <option value="একাকীত্ব / বোরডম">একাকীত্ব / বোরডম</option>
+                <option value="ক্লান্তি / অনিদ্রা">ক্লান্তি / অনিদ্রা</option>
+                <option value="রাগ / স্ট্রেস / ফ্রাস্ট্রেশন">রাগ / স্ট্রেস / ফ্রাস্ট্রেশন</option>
+                <option value="ক্ষুধা / শারীরিক অস্বস্তি">ক্ষুধা / শারীরিক অস্বস্তি</option>
+                <option value="সোশ্যাল মিডিয়া স্ক্রোলিং">সোশ্যাল মিডিয়া স্ক্রোলিং</option>
             </select>
 
-            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Quick Note to self:</label>
-            <input type="text" id="relapse-note" placeholder="e.g., Will keep phone away at night" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 mb-6 focus:outline-none focus:border-red-500">
+            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">নিজের জন্য নোট:</label>
+            <input type="text" id="relapse-note" placeholder="যেমন: রাতে ফোন দূরে রাখব" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 mb-6 focus:outline-none focus:border-red-500">
 
             <div class="flex gap-3">
-                <button onclick="closeResetModal()" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-white text-xs py-2.5 rounded-lg font-medium cursor-pointer border border-slate-700">Cancel</button>
-                <button onclick="confirmResetTimer()" class="w-2/3 bg-red-600 hover:bg-red-700 text-xs py-2.5 rounded-lg font-bold cursor-pointer text-white shadow-lg shadow-red-500/20">Save & Re-start</button>
+                <button onclick="closeResetModal()" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-white text-xs py-2.5 rounded-lg font-medium cursor-pointer border border-slate-700">বাতিল</button>
+                <button onclick="confirmResetTimer()" class="w-2/3 bg-red-600 hover:bg-red-700 text-xs py-2.5 rounded-lg font-bold cursor-pointer text-white shadow-lg shadow-red-500/20">সেভ করুন ও শুরু করুন</button>
             </div>
         </div>
-                    </div>
-                    <!-- FIREBASE MODULE SCRIPT -->
+    </div>
+
+    <!-- FIREBASE MODULE SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -264,16 +287,16 @@
             const btn = document.getElementById("login-btn");
             const errBox = document.getElementById("auth-error-msg");
             
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Connecting...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> লোড হচ্ছে...';
             btn.classList.add("opacity-70", "cursor-not-allowed");
             errBox.classList.add("hidden");
 
             try {
                 await signInWithPopup(auth, provider);
             } catch (err) {
-                btn.innerHTML = '<img src="https://docs.gandi.net/en/_images/google-logo.png" class="w-5 h-5" alt="Google"> Continue with Google';
+                btn.innerHTML = '<img src="https://docs.gandi.net/en/_images/google-logo.png" class="w-5 h-5" alt="Google"> গুগল দিয়ে লগইন করুন';
                 btn.classList.remove("opacity-70", "cursor-not-allowed");
-                errBox.innerText = "Error: " + err.message + " (Try clearing browser cache)";
+                errBox.innerText = "Error: " + err.message;
                 errBox.classList.remove("hidden");
             }
         }
@@ -315,8 +338,7 @@
             if (window.checkUIState) window.checkUIState();
         });
     </script>
-
-    <!-- MAIN LOGIC SCRIPT -->
+        <!-- MAIN LOGIC SCRIPT -->
     <script>
         const SECRET_PIN = "7860"; 
         window.isPinUnlocked = false;
@@ -343,7 +365,7 @@
                 document.getElementById("auth-screen").classList.add("hidden");
                 document.getElementById("dashboard").classList.remove("hidden");
                 
-                document.getElementById("days-display").innerText = "Syncing...";
+                document.getElementById("days-display").innerText = "লোড হচ্ছে...";
                 if (window.loadCloudData) await window.loadCloudData();
                 window.startTimerInterval();
             } else {
@@ -369,7 +391,7 @@
             const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-            document.getElementById("days-display").innerText = `${d} Days`;
+            document.getElementById("days-display").innerText = `${d} দিন`;
             document.getElementById("time-display").innerText = 
                 `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
@@ -382,16 +404,16 @@
             const rebootBar = document.getElementById("reboot-bar");
             const statusText = document.getElementById("recovery-status-text");
 
-            if(days < 3) { badge.innerText = "⭐ Level 1"; badge.className = "inline-block text-[10px] uppercase font-bold tracking-widest bg-slate-500/10 text-slate-400 border border-slate-500/20 px-3 py-1 rounded-full mb-4"; }
-            else if(days < 7) { badge.innerText = "⚔️ Level 2"; badge.className = "inline-block text-[10px] uppercase font-bold tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full mb-4"; }
-            else if(days < 14) { badge.innerText = "🛡️ Level 3"; badge.className = "inline-block text-[10px] uppercase font-bold tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full mb-4"; }
-            else { badge.innerText = "👑 Master"; badge.className = "inline-block text-[10px] uppercase font-bold tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full mb-4 animate-pulse"; }
+            if(days < 3) { badge.innerText = "⭐ লেভেল ১"; badge.className = "inline-block text-[10px] uppercase font-bold tracking-widest bg-slate-500/10 text-slate-400 border border-slate-500/20 px-3 py-1 rounded-full mb-4"; }
+            else if(days < 7) { badge.innerText = "⚔️ লেভেল ২"; badge.className = "inline-block text-[10px] uppercase font-bold tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full mb-4"; }
+            else if(days < 14) { badge.innerText = "🛡️ লেভেল ৩"; badge.className = "inline-block text-[10px] uppercase font-bold tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full mb-4"; }
+            else { badge.innerText = "👑 মাস্টার"; badge.className = "inline-block text-[10px] uppercase font-bold tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full mb-4 animate-pulse"; }
 
             let pct = Math.min(Math.floor((days / 90) * 100), 100);
             rebootPct.innerText = `${pct}%`;
             rebootBar.style.width = `${pct}%`;
 
-            if(days === 0) statusText.innerText = "Day 0: Reset baseline.";
+            if(days === 0) statusText.innerText = "দিন ০: ব্রেন রিসেট হচ্ছে।";
             else if(days < 3) statusText.innerText = "১-৩ দিন: ফোকাস রিবিল্ড হচ্ছে। ক্রেভিং হতে পারে।";
             else if(days < 7) statusText.innerText = "৪-৭ দিন: ব্রেন ফগ কমছে। মেন্টাল ক্ল্যারিটি বাড়ছে।";
             else if(days < 14) statusText.innerText = "৮-১৪ দিন: এনার্জি লেভেল অপটিমাইজ হচ্ছে।";
@@ -404,12 +426,12 @@
 
         async function confirmResetTimer() {
             const trigger = document.getElementById("relapse-trigger").value;
-            const customNote = document.getElementById("relapse-note").value || "No extra note";
+            const customNote = document.getElementById("relapse-note").value || "কোনো নোট নেই";
             
             const diff = new Date().getTime() - window.startTime;
             window.historyData.unshift({ 
                 diffMs: diff, 
-                note: `Reason: ${trigger} | ${customNote}`, 
+                note: `কারণ: ${trigger} | ${customNote}`, 
                 timestamp: new Date().getTime(), 
                 dateStr: new Date().toLocaleDateString() 
             });
@@ -444,14 +466,14 @@
             function runBreathing() {
                 if (!document.getElementById("emergency-panel").classList.contains("hidden")) {
                     if(step === 0) {
-                        bText.innerText = "Inhale (4s)";
+                        bText.innerText = "শ্বাস নিন (৪ সেকেন্ড)";
                         bCircle.style.transform = "scale(1.8)";
                         breathingTimeout = setTimeout(() => { step = 1; runBreathing(); }, 4000);
                     } else if(step === 1) {
-                        bText.innerText = "Hold (7s)";
+                        bText.innerText = "ধরে রাখুন (৭ সেকেন্ড)";
                         breathingTimeout = setTimeout(() => { step = 2; runBreathing(); }, 7000);
                     } else {
-                        bText.innerText = "Exhale (8s)";
+                        bText.innerText = "শ্বাস ছাড়ুন (৮ সেকেন্ড)";
                         bCircle.style.transform = "scale(1)";
                         breathingTimeout = setTimeout(() => { step = 0; runBreathing(); }, 8000);
                     }
@@ -467,45 +489,70 @@
             document.getElementById("breathing-circle").style.transform = "scale(1)";
         }
 
-        const allTasks = ['pray-fajr', 'pray-dhuhr', 'pray-asr', 'pray-maghrib', 'pray-isha', 'read-quran', 'task-1', 'task-2', 'task-3', 'task-4'];
+        const prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+        
+        window.setPrayer = async function(id, type) {
+            if(!window.dailyChecklists) window.dailyChecklists = {};
+            if(!window.dailyChecklists[todayStr]) window.dailyChecklists[todayStr] = {};
+            
+            window.dailyChecklists[todayStr][id] = type; 
+            
+            document.getElementById(id+'-jamath').classList.remove('active-jamath');
+            document.getElementById(id+'-home').classList.remove('active-home');
+            if(type === 'jamath') document.getElementById(id+'-jamath').classList.add('active-jamath');
+            if(type === 'home') document.getElementById(id+'-home').classList.add('active-home');
+            
+            if(window.syncWithCloud) await window.syncWithCloud();
+        }
+
+        const tasks = ['read-quran', 'task-1', 'task-2', 'task-3', 'task-4'];
         
         function loadChecklistFromCloud() {
             if(window.dailyChecklists && window.dailyChecklists[todayStr]) {
                 const todayData = window.dailyChecklists[todayStr];
-                allTasks.forEach(taskId => {
-                    if(document.getElementById(taskId)) {
-                        document.getElementById(taskId).checked = todayData[taskId] === true;
+                
+                tasks.forEach(taskId => {
+                    if(document.getElementById(taskId)) document.getElementById(taskId).checked = todayData[taskId] === true;
+                });
+                
+                prayers.forEach(p => {
+                    if(document.getElementById(p+'-jamath')) {
+                        document.getElementById(p+'-jamath').classList.remove('active-jamath');
+                        document.getElementById(p+'-home').classList.remove('active-home');
+                        if(todayData[p] === 'jamath') document.getElementById(p+'-jamath').classList.add('active-jamath');
+                        if(todayData[p] === 'home') document.getElementById(p+'-home').classList.add('active-home');
                     }
                 });
+                
             } else {
-                allTasks.forEach(taskId => {
-                    if(document.getElementById(taskId)) document.getElementById(taskId).checked = false;
+                tasks.forEach(taskId => { if(document.getElementById(taskId)) document.getElementById(taskId).checked = false; });
+                prayers.forEach(p => {
+                    if(document.getElementById(p+'-jamath')) {
+                        document.getElementById(p+'-jamath').classList.remove('active-jamath');
+                        document.getElementById(p+'-home').classList.remove('active-home');
+                    }
                 });
             }
         }
         
         window.toggleTaskCloud = async function(taskId) {
             const isChecked = document.getElementById(taskId).checked;
-            
             if(!window.dailyChecklists) window.dailyChecklists = {};
             if(!window.dailyChecklists[todayStr]) window.dailyChecklists[todayStr] = {};
-            
             window.dailyChecklists[todayStr][taskId] = isChecked;
-            
             if(window.syncWithCloud) await window.syncWithCloud();
         }
 
-        // NEW: Date to Date History Entry
         window.addManualHistoryDateToDate = async function() {
             const startInput = document.getElementById("manual-start").value;
             const endInput = document.getElementById("manual-end").value;
             
-            if (!startInput || !endInput) return alert("Please select both Start and End dates.");
+            if (!startInput || !endInput) return alert("অনুগ্রহ করে শুরু এবং শেষের সময় সিলেক্ট করুন।");
             
             const startTime = new Date(startInput).getTime();
             const endTime = new Date(endInput).getTime();
             
-            if (endTime <= startTime) return alert("End date must be after Start date.");
+            if (endTime <= startTime) return alert("শেষের সময় অবশ্যই শুরুর সময়ের পরে হতে হবে।");
             
             const diffMs = endTime - startTime;
             
@@ -519,7 +566,7 @@
 
             window.historyData.unshift({ 
                 diffMs: diffMs, 
-                note: "Manual Record", 
+                note: "ম্যানুয়াল রেকর্ড", 
                 timestamp: endTime, 
                 dateStr: dateStr 
             });
@@ -531,9 +578,8 @@
             window.updateDashboard();
         }
 
-        // NEW: Delete History Item
         window.deleteHistoryItem = async function(index) {
-            if(confirm("Are you sure you want to delete this record?")) {
+            if(confirm("আপনি কি নিশ্চিত যে এই রেকর্ডটি ডিলিট করতে চান?")) {
                 window.historyData.splice(index, 1);
                 if(window.syncWithCloud) await window.syncWithCloud();
                 window.updateDashboard();
@@ -558,7 +604,7 @@
                 ul.innerHTML += `
                     <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex justify-between items-center group">
                         <div class="flex-1">
-                            <span class="text-emerald-400 font-mono font-bold text-sm">${d}d ${h}h</span>
+                            <span class="text-emerald-400 font-mono font-bold text-sm">${d} দিন ${h} ঘণ্টা</span>
                             <p class="text-[11px] text-slate-400 mt-0.5"><i class="fa-regular fa-comment-dots mr-1"></i> ${item.note}</p>
                             <span class="text-[9px] bg-slate-800 px-2 py-0.5 rounded text-slate-500 font-medium mt-1 inline-block">${item.dateStr}</span>
                         </div>
@@ -569,12 +615,12 @@
             });
 
             if (window.historyData.length > 0) {
-                document.getElementById("longest-streak").innerText = `${Math.floor(maxMs / (1000 * 60 * 60 * 24))} Days`;
-                document.getElementById("avg-streak").innerText = `${Math.floor((totalMs / window.historyData.length) / (1000 * 60 * 60 * 24))} Days`;
+                document.getElementById("longest-streak").innerText = `${Math.floor(maxMs / (1000 * 60 * 60 * 24))} দিন`;
+                document.getElementById("avg-streak").innerText = `${Math.floor((totalMs / window.historyData.length) / (1000 * 60 * 60 * 24))} দিন`;
                 document.getElementById("monthly-relapses").innerText = monthlyCount;
             } else {
-                document.getElementById("longest-streak").innerText = "0 Days";
-                document.getElementById("avg-streak").innerText = "0 Days";
+                document.getElementById("longest-streak").innerText = "0 দিন";
+                document.getElementById("avg-streak").innerText = "0 দিন";
                 document.getElementById("monthly-relapses").innerText = "0";
             }
 
@@ -624,4 +670,3 @@
     </script>
 </body>
 </html>
-পিও
