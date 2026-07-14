@@ -11,7 +11,6 @@
         body { background-color: #070a13; color: #f8fafc; font-family: system-ui, sans-serif; }
         .glass { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         .progress-bar { transition: width 0.5s ease-in-out; }
-        /* Custom Scrollbar for sleek look */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
@@ -189,13 +188,21 @@
             <div class="h-44 w-full"><canvas id="streakChart"></canvas></div>
         </div>
 
-        <!-- History Manual Input -->
+        <!-- History Manual Input (DATE TO DATE) -->
         <div class="glass rounded-2xl p-5 mb-6">
-            <h3 class="text-[11px] font-bold text-slate-400 mb-3 uppercase tracking-wider">Add Missing Record</h3>
-            <div class="flex gap-2">
-                <input type="number" id="manual-days" placeholder="Days" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs text-center text-white focus:outline-none focus:border-blue-500">
-                <input type="number" id="manual-hours" placeholder="Hours" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs text-center text-white focus:outline-none focus:border-blue-500">
-                <button onclick="addManualHistory()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-lg text-xs font-bold transition cursor-pointer shadow-lg">+</button>
+            <h3 class="text-[11px] font-bold text-slate-400 mb-4 uppercase tracking-wider">Add Missing Record</h3>
+            <div class="flex flex-col gap-3">
+                <div class="flex justify-between items-center bg-slate-900 border border-slate-700 rounded-lg p-2">
+                    <span class="text-xs text-slate-400 w-12 text-left pl-1">From:</span>
+                    <input type="datetime-local" id="manual-start" class="bg-transparent text-xs text-white focus:outline-none w-full text-right">
+                </div>
+                <div class="flex justify-between items-center bg-slate-900 border border-slate-700 rounded-lg p-2">
+                    <span class="text-xs text-slate-400 w-12 text-left pl-1">To:</span>
+                    <input type="datetime-local" id="manual-end" class="bg-transparent text-xs text-white focus:outline-none w-full text-right">
+                </div>
+                <button onclick="addManualHistoryDateToDate()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-xs font-bold transition cursor-pointer shadow-lg w-full flex items-center justify-center gap-2 mt-1">
+                    <i class="fa-solid fa-calendar-plus"></i> Add Past Record
+                </button>
             </div>
         </div>
 
@@ -229,8 +236,8 @@
                 <button onclick="confirmResetTimer()" class="w-2/3 bg-red-600 hover:bg-red-700 text-xs py-2.5 rounded-lg font-bold cursor-pointer text-white shadow-lg shadow-red-500/20">Save & Re-start</button>
             </div>
         </div>
-    </div>
-        <!-- FIREBASE MODULE SCRIPT (With Persistence Fix) -->
+                    </div>
+                    <!-- FIREBASE MODULE SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -488,19 +495,49 @@
             if(window.syncWithCloud) await window.syncWithCloud();
         }
 
-        async function addManualHistory() {
-            const days = parseInt(document.getElementById("manual-days").value) || 0;
-            const hours = parseInt(document.getElementById("manual-hours").value) || 0;
-            if (days === 0 && hours === 0) return alert("Please enter valid days or hours.");
-
-            const diffMs = (days * 24 * 60 * 60 * 1000) + (hours * 60 * 60 * 1000);
-            window.historyData.unshift({ diffMs, note: "Manual Import", timestamp: new Date().getTime(), dateStr: "Past Record" });
+        // NEW: Date to Date History Entry
+        window.addManualHistoryDateToDate = async function() {
+            const startInput = document.getElementById("manual-start").value;
+            const endInput = document.getElementById("manual-end").value;
             
-            document.getElementById("manual-days").value = "";
-            document.getElementById("manual-hours").value = "";
+            if (!startInput || !endInput) return alert("Please select both Start and End dates.");
+            
+            const startTime = new Date(startInput).getTime();
+            const endTime = new Date(endInput).getTime();
+            
+            if (endTime <= startTime) return alert("End date must be after Start date.");
+            
+            const diffMs = endTime - startTime;
+            
+            const formatCustomDate = (timestamp) => {
+                const d = new Date(timestamp);
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                return `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            };
+
+            const dateStr = `${formatCustomDate(startTime)} -> ${formatCustomDate(endTime)}`;
+
+            window.historyData.unshift({ 
+                diffMs: diffMs, 
+                note: "Manual Record", 
+                timestamp: endTime, 
+                dateStr: dateStr 
+            });
+            
+            document.getElementById("manual-start").value = "";
+            document.getElementById("manual-end").value = "";
             
             if(window.syncWithCloud) await window.syncWithCloud();
             window.updateDashboard();
+        }
+
+        // NEW: Delete History Item
+        window.deleteHistoryItem = async function(index) {
+            if(confirm("Are you sure you want to delete this record?")) {
+                window.historyData.splice(index, 1);
+                if(window.syncWithCloud) await window.syncWithCloud();
+                window.updateDashboard();
+            }
         }
 
         window.updateDashboard = function() {
@@ -510,7 +547,7 @@
             let chartLabels = [], chartValues = [];
             const thirtyDaysAgo = new Date().getTime() - (30 * 24 * 60 * 60 * 1000);
 
-            window.historyData.forEach((item) => {
+            window.historyData.forEach((item, index) => {
                 const d = Math.floor(item.diffMs / (1000 * 60 * 60 * 24));
                 const h = Math.floor((item.diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 
@@ -519,12 +556,15 @@
                 if (item.timestamp && item.timestamp > thirtyDaysAgo) monthlyCount++;
 
                 ul.innerHTML += `
-                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex justify-between items-start">
-                        <div>
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex justify-between items-center group">
+                        <div class="flex-1">
                             <span class="text-emerald-400 font-mono font-bold text-sm">${d}d ${h}h</span>
                             <p class="text-[11px] text-slate-400 mt-0.5"><i class="fa-regular fa-comment-dots mr-1"></i> ${item.note}</p>
+                            <span class="text-[9px] bg-slate-800 px-2 py-0.5 rounded text-slate-500 font-medium mt-1 inline-block">${item.dateStr}</span>
                         </div>
-                        <span class="text-[9px] bg-slate-800 px-2 py-0.5 rounded text-slate-500 font-medium">${item.dateStr}</span>
+                        <button onclick="deleteHistoryItem(${index})" class="text-red-500/70 hover:text-red-400 bg-red-500/10 p-2.5 rounded-lg transition cursor-pointer">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
                     </div>`;
             });
 
@@ -532,6 +572,10 @@
                 document.getElementById("longest-streak").innerText = `${Math.floor(maxMs / (1000 * 60 * 60 * 24))} Days`;
                 document.getElementById("avg-streak").innerText = `${Math.floor((totalMs / window.historyData.length) / (1000 * 60 * 60 * 24))} Days`;
                 document.getElementById("monthly-relapses").innerText = monthlyCount;
+            } else {
+                document.getElementById("longest-streak").innerText = "0 Days";
+                document.getElementById("avg-streak").innerText = "0 Days";
+                document.getElementById("monthly-relapses").innerText = "0";
             }
 
             const renderData = [...window.historyData].reverse();
@@ -580,3 +624,4 @@
     </script>
 </body>
 </html>
+পিও
